@@ -1,0 +1,1469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Home Reset Planner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --teal-deep: #0B4F46;
+    --teal: #0E5A4E;
+    --teal-bright: #0FA47A;
+    --teal-soft: #D8EFE6;
+    --mint: #EAF6F1;
+    --mint-card: #F4FBF8;
+    --white: #FFFFFF;
+    --ink: #0B2B26;
+    --ink-soft: #4A6B63;
+    --ink-faint: #7A9A91;
+    --line: #DCE9E3;
+    --yellow: #FFD23F;
+    --yellow-dark: #8A6D00;
+    --danger: #C0392B;
+    --danger-soft: #FBE9E7;
+    --radius: 14px;
+    --shadow: 0 2px 10px rgba(11, 79, 70, 0.08);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--mint); color: var(--ink);
+    font-family: "Plus Jakarta Sans", -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.5; font-size: 15px;
+  }
+  h1, h2, h3, .num { font-weight: 800; letter-spacing: -0.01em; }
+  .app { display: flex; min-height: 100vh; }
+
+  /* --- Sidebar --- */
+  .sidebar {
+    width: 232px; flex: 0 0 232px; background: var(--teal-deep); color: #D8EFE6;
+    padding: 22px 14px; position: sticky; top: 0; height: 100vh; overflow-y: auto;
+  }
+  .brand { font-size: 1.35rem; font-weight: 800; color: #fff; padding: 0 10px; line-height: 1.2; }
+  .brand span { color: #7FE3BE; }
+  .brand-sub { color: #9CC8BC; font-size: 0.85rem; padding: 4px 10px 18px; }
+  .sidebar nav { display: flex; flex-direction: column; gap: 2px; }
+  .nav-btn {
+    display: flex; align-items: center; gap: 10px; width: 100%; text-align: left;
+    background: transparent; border: none; border-left: 3px solid transparent;
+    color: #BFDCD3; font: inherit; font-size: 0.97rem; padding: 10px 12px;
+    border-radius: 0 10px 10px 0; cursor: pointer;
+  }
+  .nav-btn:hover { background: rgba(255,255,255,0.08); color: #fff; }
+  .nav-btn.active { background: #0E5A4E; color: #fff; border-left-color: var(--teal-bright); font-weight: 700; }
+  .nav-ico { width: 20px; text-align: center; font-size: 1.05rem; }
+  .side-foot { margin-top: 22px; padding: 14px 10px 0; border-top: 1px solid rgba(255,255,255,0.16); color: #9CC8BC; font-size: 0.84rem; }
+  .side-foot p { margin: 0 0 8px; }
+  .side-badge {
+    display: inline-block; background: var(--yellow); color: #3D3200; font-weight: 800;
+    font-size: 0.72rem; padding: 3px 9px; border-radius: 999px; letter-spacing: 0.04em;
+  }
+
+  /* --- Main --- */
+  .main { flex: 1; min-width: 0; }
+  .wrap { max-width: 1020px; margin: 0 auto; padding: 24px 24px 70px; }
+  header.top { margin-bottom: 18px; }
+  header.top h1 { margin: 0; font-size: 1.9rem; color: var(--teal-deep); }
+  header.top p { margin: 5px 0 0; color: var(--ink-soft); max-width: 640px; }
+  .top-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .screen { display: none; }
+  .screen.active { display: block; }
+  h2.sec { font-size: 1.15rem; color: var(--teal-deep); margin: 26px 0 12px; }
+  h2.sec:first-child { margin-top: 0; }
+
+  /* --- Cards & stats --- */
+  .card { background: var(--white); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: 18px 20px; }
+  .card h3 { margin: 0 0 6px; font-size: 1.05rem; color: var(--teal-deep); }
+  .card p.sub { margin: 0 0 10px; color: var(--ink-soft); font-size: 0.92rem; }
+  .grid4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  .stat { background: var(--white); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: 16px 18px; }
+  .stat .num { font-size: 2rem; color: var(--teal-deep); line-height: 1.1; }
+  .stat .num small { font-size: 1rem; color: var(--ink-soft); font-weight: 700; }
+  .stat .lbl { color: var(--ink-soft); font-size: 0.88rem; margin-top: 2px; }
+  .stat .hint { color: var(--ink-faint); font-size: 0.8rem; margin-top: 4px; }
+  .stat.teal { background: var(--teal-deep); border-color: var(--teal-deep); }
+  .stat.teal .num, .stat.teal .lbl { color: #fff; }
+  .stat.teal .hint { color: #9CC8BC; }
+
+  /* --- Buttons, pills, forms --- */
+  .btn {
+    background: var(--teal-bright); color: #fff; border: none; border-radius: 10px;
+    padding: 10px 18px; font: inherit; font-size: 0.95rem; font-weight: 700; cursor: pointer;
+  }
+  .btn:hover { background: #0C8A68; }
+  .btn:disabled { opacity: 0.45; cursor: default; }
+  .btn.ghost { background: transparent; color: var(--teal-deep); border: 1.5px solid var(--teal); }
+  .btn.ghost:hover { background: var(--teal-soft); }
+  .btn.dark { background: var(--teal-deep); }
+  .btn.dark:hover { background: var(--teal); }
+  .btn.danger { background: transparent; color: var(--danger); border: 1.5px solid var(--danger); }
+  .btn.danger:hover { background: var(--danger-soft); }
+  .btn.small { padding: 6px 12px; font-size: 0.88rem; border-radius: 8px; }
+  .btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .pill {
+    display: inline-block; font-size: 0.78rem; font-weight: 700; padding: 2px 9px;
+    border-radius: 999px; background: var(--teal-soft); color: var(--teal-deep); white-space: nowrap;
+  }
+  .pill.low { background: #E3F2E8; color: #2E7D5B; }
+  .pill.med { background: #FFF3C4; color: #7A5B00; }
+  .pill.high { background: #FDE8E4; color: #9E2B1E; }
+  .pill.due { background: var(--yellow); color: #3D3200; }
+  .pill.overdue { background: var(--danger); color: #fff; }
+  .pill.ok { background: var(--teal-soft); color: var(--teal-deep); }
+  input[type="text"], input[type="number"], input[type="date"], select, textarea {
+    font: inherit; font-size: 0.95rem; color: var(--ink); background: #fff;
+    border: 1.5px solid var(--line); border-radius: 9px; padding: 9px 11px; width: 100%;
+  }
+  input:focus, select:focus, textarea:focus { outline: 2px solid var(--teal-bright); outline-offset: 0; border-color: var(--teal-bright); }
+  label.f { display: block; font-size: 0.88rem; font-weight: 700; color: var(--teal-deep); margin: 0 0 5px; }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .form-grid .full { grid-column: 1 / -1; }
+  .hint { color: var(--ink-faint); font-size: 0.85rem; }
+
+  /* --- Lists & tables --- */
+  .task-row {
+    display: flex; align-items: center; gap: 12px; padding: 11px 2px;
+    border-bottom: 1px solid var(--line);
+  }
+  .task-row:last-child { border-bottom: none; }
+  .task-row .t { flex: 1; min-width: 0; }
+  .task-row .t b { display: block; font-weight: 700; }
+  .task-row .t span { color: var(--ink-soft); font-size: 0.86rem; }
+  .task-row.done { opacity: 0.6; }
+  .task-row.done .t b { text-decoration: line-through; }
+  .check {
+    width: 26px; height: 26px; flex: 0 0 26px; border-radius: 50%;
+    border: 2px solid var(--teal-bright); background: #fff; cursor: pointer;
+    font-size: 0.9rem; color: #fff; line-height: 1; padding: 0;
+  }
+  .check.done { background: var(--teal-bright); }
+  table.tbl { width: 100%; border-collapse: collapse; font-size: 0.93rem; }
+  table.tbl th { text-align: left; color: var(--ink-soft); font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.04em; padding: 8px 10px; border-bottom: 2px solid var(--line); }
+  table.tbl td { padding: 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  table.tbl tr:last-child td { border-bottom: none; }
+
+  /* --- Charts (pure CSS bars) --- */
+  .bars { display: flex; align-items: flex-end; gap: 4px; height: 120px; padding-top: 8px; }
+  .bars .bar { flex: 1; min-width: 0; background: var(--teal-bright); border-radius: 4px 4px 0 0; position: relative; }
+  .bars .bar.zero { background: var(--line); }
+  .bars .bar.today { background: var(--teal-deep); }
+  .bar-labels { display: flex; gap: 4px; margin-top: 6px; }
+  .bar-labels span { flex: 1; text-align: center; font-size: 0.72rem; color: var(--ink-faint); min-width: 0; overflow: hidden; }
+  .bar-labels.spread { justify-content: space-between; }
+  .bar-labels.spread span { flex: 0 0 auto; }
+  .hbar-row { display: flex; align-items: center; gap: 10px; margin: 8px 0; font-size: 0.9rem; }
+  .hbar-row .n { width: 90px; flex: 0 0 90px; font-weight: 700; color: var(--teal-deep); }
+  .hbar-track { flex: 1; background: var(--mint); border-radius: 999px; height: 12px; overflow: hidden; }
+  .hbar-fill { height: 100%; background: var(--teal-bright); border-radius: 999px; }
+  .hbar-row .v { width: 44px; text-align: right; color: var(--ink-soft); }
+
+  /* --- Timer --- */
+  .timer-big { font-size: 4.2rem; font-weight: 800; color: var(--teal-deep); text-align: center; line-height: 1.1; font-variant-numeric: tabular-nums; }
+  .timer-sub { text-align: center; color: var(--ink-soft); margin: 4px 0 18px; }
+  .chip-row { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 18px; }
+  .chip {
+    border: 1.5px solid var(--teal); background: #fff; color: var(--teal-deep);
+    border-radius: 999px; padding: 7px 16px; font: inherit; font-weight: 700; cursor: pointer;
+  }
+  .chip.active { background: var(--teal-deep); color: #fff; border-color: var(--teal-deep); }
+  .timer-done {
+    display: none; background: var(--yellow); color: #3D3200; border-radius: var(--radius);
+    padding: 16px 20px; text-align: center; font-weight: 700; margin-top: 16px;
+  }
+  .timer-done.show { display: block; }
+
+  .room-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .room-head h3 { margin: 0; }
+  .dot { display: inline-block; width: 11px; height: 11px; border-radius: 50%; background: var(--teal-bright); margin-right: 7px; vertical-align: 1px; }
+  .empty { color: var(--ink-faint); font-size: 0.92rem; padding: 10px 0; }
+  .banner {
+    display: none; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+    background: #FFF8D6; border: 1px solid #F0D97A; color: #5C4A00; border-radius: var(--radius);
+    padding: 12px 16px; margin-bottom: 16px; font-size: 0.92rem;
+  }
+  .banner.show { display: flex; }
+  .toast {
+    position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
+    background: var(--teal-deep); color: #fff; padding: 11px 20px; border-radius: 999px;
+    font-weight: 700; box-shadow: 0 6px 24px rgba(0,0,0,0.25); display: none; z-index: 50;
+  }
+  .toast.show { display: block; }
+  .streak-badge {
+    display: inline-flex; align-items: center; gap: 6px; background: var(--yellow);
+    color: #3D3200; font-weight: 800; padding: 5px 12px; border-radius: 999px; font-size: 0.88rem;
+  }
+  .mile-unlocked { border-top: 5px solid var(--yellow); }
+  /* --- Styled confirm modal --- */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(11, 43, 38, 0.55);
+    display: none; align-items: center; justify-content: center; z-index: 100; padding: 20px;
+  }
+  .modal-overlay.show { display: flex; }
+  .modal-card {
+    background: var(--white); border-radius: var(--radius);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.28); max-width: 440px; width: 100%;
+    padding: 24px; border-top: 5px solid var(--teal-bright);
+  }
+  .modal-card h3 { margin: 0 0 8px; color: var(--teal-deep); font-size: 1.25rem; }
+  .modal-card p { margin: 0 0 20px; color: var(--ink-soft); }
+  @media (max-width: 820px) {
+    .sidebar { width: 200px; flex-basis: 200px; }
+    .grid4, .grid3 { grid-template-columns: 1fr 1fr; }
+    .grid2, .form-grid { grid-template-columns: 1fr; }
+    .timer-big { font-size: 3.2rem; }
+  }
+  @media (max-width: 600px) {
+    .app { flex-direction: column; }
+    .sidebar { width: 100%; flex: none; height: auto; position: static; padding: 14px; }
+    .sidebar nav { flex-direction: row; flex-wrap: wrap; }
+    .nav-btn { width: auto; border-left: none; border-bottom: 3px solid transparent; border-radius: 8px; }
+    .nav-btn.active { border-bottom-color: var(--teal-bright); }
+    .side-foot { display: none; }
+    .grid4, .grid3 { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand">Home Reset<span>.</span></div>
+    <div class="brand-sub">Cleaning Planner</div>
+    <nav id="nav">
+      <button class="nav-btn active" data-screen="dashboard"><span class="nav-ico">&#8962;</span>Dashboard</button>
+      <button class="nav-btn" data-screen="rooms"><span class="nav-ico">&#9638;</span>Rooms</button>
+      <button class="nav-btn" data-screen="sessions"><span class="nav-ico">&#8635;</span>Sessions</button>
+      <button class="nav-btn" data-screen="routines"><span class="nav-ico">&#128197;</span>Routines</button>
+      <button class="nav-btn" data-screen="deep-plan"><span class="nav-ico">&#129529;</span>Deep Clean Plan</button>
+      <button class="nav-btn" data-screen="timer"><span class="nav-ico">&#9202;</span>Focus Timer</button>
+      <button class="nav-btn" data-screen="log"><span class="nav-ico">&#9776;</span>Log &amp; History</button>
+      <button class="nav-btn" data-screen="insights"><span class="nav-ico">&#128200;</span>Insights</button>
+      <button class="nav-btn" data-screen="milestones"><span class="nav-ico">&#127942;</span>Milestones</button>
+      <button class="nav-btn" data-screen="settings"><span class="nav-ico">&#9881;</span>Settings</button>
+    </nav>
+    <div class="side-foot">
+      <p><span class="side-badge">NO MONTHLY FEES</span></p>
+      <p>Works offline. No login. Your data stays on your device.</p>
+      <p id="sideStreak"></p>
+    </div>
+  </aside>
+
+  <main class="main"><div class="wrap">
+    <div class="banner" id="sampleBanner"><span>This is sample data — explore freely, then start fresh with your own home.</span><button class="btn small dark" id="bannerFresh">Start fresh</button></div>
+
+    <!-- DASHBOARD -->
+    <section class="screen active" id="screen-dashboard">
+      <header class="top"><div class="top-row">
+        <div><h1 id="greeting">Good afternoon</h1><p id="dashSub"></p></div>
+        <div><span class="streak-badge" id="dashStreak"></span></div>
+      </div></header>
+      <div class="grid4" id="dashStats"></div>
+      <h2 class="sec">Needs attention today</h2>
+      <div class="card"><div id="dashDue"></div></div>
+      <div class="grid2" style="margin-top:14px">
+        <div class="card"><h3>Rooms at a glance</h3><p class="sub">Tasks due in each room.</p><div id="dashRooms"></div></div>
+        <div class="card"><h3>Clutter hotspots</h3><p class="sub">The spots where clutter builds up first.</p><div id="dashHotspots"></div></div>
+      </div>
+      <div class="card" style="margin-top:14px"><h3>This week so far</h3><p class="sub">Tasks completed in the last 7 days.</p><div id="dashWeek"></div><div class="bar-labels" id="dashWeekLabels"></div></div>
+    </section>
+
+    <!-- ROOMS -->
+    <section class="screen" id="screen-rooms">
+      <header class="top"><h1>Rooms</h1><p>Each room has its own task list. Add a room for any space in your home, then add the small jobs that keep it calm.</p></header>
+      <div class="card" style="margin-bottom:14px">
+        <h3>Add a room</h3>
+        <div class="form-grid"><div><label class="f" for="newRoomName">Room name</label><input type="text" id="newRoomName" placeholder="e.g. Home office"></div>
+        <div style="align-self:end"><button class="btn" id="addRoomBtn">Add room</button></div></div>
+      </div>
+      <div id="roomList"></div>
+    </section>
+
+    <!-- SESSIONS -->
+    <section class="screen" id="screen-sessions">
+      <header class="top"><h1>Sessions</h1><p>Pick a session that matches your time and energy. The planner builds a focused list from the tasks that are actually due.</p></header>
+      <div class="grid2">
+        <div class="card" id="cardQuick" style="cursor:pointer"><h3>Quick Tidy</h3><p class="sub">Short, low-energy jobs. Five or ten minutes is enough — small wins, no pressure.</p><span class="pill low">Low energy</span> <span class="pill ok">5–15 min</span></div>
+        <div class="card" id="cardDeep" style="cursor:pointer"><h3>Deep Clean</h3><p class="sub">A thorough reset for one room. Longer jobs, bigger payoff, done in one focused block.</p><span class="pill high">Any energy</span> <span class="pill ok">20–45 min</span></div>
+      </div>
+      <div class="card" style="margin-top:14px">
+        <h3>Build my session</h3>
+        <div class="form-grid">
+          <div><label class="f" for="sessType">Session type</label><select id="sessType"><option value="quick">Quick Tidy</option><option value="deep">Deep Clean</option></select></div>
+          <div><label class="f" for="sessRoom">Room</label><select id="sessRoom"></select></div>
+          <div><label class="f" for="sessMinutes">Minutes available</label><select id="sessMinutes"><option>5</option><option selected>10</option><option>15</option><option>20</option><option>30</option><option>45</option></select></div>
+          <div><label class="f" for="sessEnergy">Energy level</label><select id="sessEnergy"><option value="">Any</option><option value="low">Low</option><option value="med">Medium</option><option value="high">High</option></select></div>
+        </div>
+        <div style="margin-top:14px"><button class="btn" id="buildSessBtn">Build my session</button></div>
+      </div>
+      <div class="card" style="margin-top:14px"><h3>Your session list</h3><p class="sub" id="sessSummary">No session built yet — pick a type above and press "Build my session".</p><div id="sessList"></div></div>
+    </section>
+
+    <!-- ROUTINES -->
+    <section class="screen" id="screen-routines">
+      <header class="top"><h1>Routines</h1><p>Recurring jobs, on a rhythm that fits your home. The next due date updates automatically from your actual completion history.</p></header>
+      <div class="card"><div id="routineTable"></div></div>
+    </section>
+
+    <!-- DEEP CLEAN PLAN -->
+    <section class="screen" id="screen-deep-plan">
+      <header class="top"><h1>Deep Clean Plan</h1><p>One season at a time, room by room. Tick a job off and it is logged like any other completed task — minutes and all.</p></header>
+      <div class="card" style="margin-bottom:14px">
+        <h3>Pick a season</h3>
+        <div class="chip-row" id="deepSeasonRow" style="justify-content:flex-start"></div>
+        <div id="deepOverall" style="margin-top:14px"></div>
+      </div>
+      <div id="deepRooms"></div>
+    </section>
+
+    <!-- TIMER -->
+    <section class="screen" id="screen-timer">
+      <header class="top"><h1>Focus Timer</h1><p>One small block of focused cleaning. Pick a time, press start, and just do the next job on your list.</p></header>
+      <div class="card">
+        <div class="timer-big" id="timerDisplay">15:00</div>
+        <div class="timer-sub" id="timerSub">Ready when you are.</div>
+        <div class="chip-row" id="timerChips">
+          <button class="chip" data-min="5">5 min</button>
+          <button class="chip" data-min="10">10 min</button>
+          <button class="chip active" data-min="15">15 min</button>
+          <button class="chip" data-min="25">25 min</button>
+          <button class="chip" data-min="30">30 min</button>
+        </div>
+        <div class="form-grid" style="max-width:420px;margin:0 auto 16px">
+          <div><label class="f" for="timerCustom">Or set your own (minutes)</label><input type="number" id="timerCustom" min="1" max="120" placeholder="e.g. 12"></div>
+          <div style="align-self:end"><button class="btn ghost" id="timerSetCustom">Set time</button></div>
+        </div>
+        <div class="btn-row" style="justify-content:center">
+          <button class="btn" id="timerStart">Start</button>
+          <button class="btn ghost" id="timerPause" disabled>Pause</button>
+          <button class="btn ghost" id="timerReset">Reset</button>
+        </div>
+        <div class="timer-done" id="timerDone">Nice work — time is up. That counts. <button class="btn small dark" id="timerLogBtn" style="margin-left:8px">Log this session</button></div>
+      </div>
+    </section>
+
+    <!-- LOG -->
+    <section class="screen" id="screen-log">
+      <header class="top"><h1>Log &amp; History</h1><p>Every completed job, recorded with its date, time and minutes. Your history is what powers your routines and insights.</p></header>
+      <div class="card">
+        <div class="form-grid" style="margin-bottom:12px">
+          <div><label class="f" for="logFilterRange">Show</label><select id="logFilterRange"><option value="7">Last 7 days</option><option value="30" selected>Last 30 days</option><option value="0">All time</option></select></div>
+          <div><label class="f" for="logFilterRoom">Room</label><select id="logFilterRoom"></select></div>
+        </div>
+        <div id="logSummary" style="margin-bottom:10px;color:var(--ink-soft)"></div>
+        <div id="logTable"></div>
+      </div>
+    </section>
+
+    <!-- INSIGHTS -->
+    <section class="screen" id="screen-insights">
+      <header class="top"><h1>Insights</h1><p>Your real progress, calculated from your own completion history — not invented numbers.</p></header>
+      <div class="grid4" id="insightStats"></div>
+      <div class="card" style="margin-top:14px"><h3>30-day activity</h3><p class="sub">Tasks completed per day over the last 30 days.</p><div class="bars" id="chart30"></div><div class="bar-labels" id="chart30Labels"></div></div>
+      <div class="grid2" style="margin-top:14px">
+        <div class="card"><h3>Weekly rhythm</h3><p class="sub">Which days you clean most (last 30 days).</p><div id="chartWeek"></div></div>
+        <div class="card"><h3>Energy balance</h3><p class="sub">Low, medium and high-energy jobs (last 30 days).</p><div id="chartEnergy"></div></div>
+      </div>
+      <div class="card" style="margin-top:14px"><h3>Most cared-for rooms</h3><p class="sub">Completions per room in the last 30 days.</p><div id="chartRooms"></div></div>
+    </section>
+
+    <!-- MILESTONES -->
+    <section class="screen" id="screen-milestones">
+      <header class="top"><h1>Milestones</h1><p id="mileSummary"></p></header>
+      <div class="grid3" id="mileGrid"></div>
+    </section>
+
+    <!-- SETTINGS -->
+    <section class="screen" id="screen-settings">
+      <header class="top"><h1>Settings</h1><p>Your data, your control. Everything is saved in this browser only — nothing leaves your device.</p></header>
+      <div class="card" style="margin-bottom:14px">
+        <h3>Your name</h3>
+        <div class="form-grid"><div><label class="f" for="setName">First name (used in the greeting)</label><input type="text" id="setName"></div>
+        <div style="align-self:end"><button class="btn" id="saveNameBtn">Save name</button></div></div>
+      </div>
+      <div class="card" style="margin-bottom:14px">
+        <h3>Backup &amp; restore</h3>
+        <p class="sub">Download a backup before changing browsers or clearing browser storage — clearing storage removes your saved records.</p>
+        <div class="btn-row">
+          <button class="btn" id="exportJsonBtn">Download backup (JSON)</button>
+          <button class="btn ghost" id="exportCsvBtn">Export log (CSV)</button>
+        </div>
+        <div style="margin-top:12px"><label class="f" for="importFile">Restore from a backup file</label><input type="file" id="importFile" accept=".json,application/json"></div>
+      </div>
+      <div class="card">
+        <h3>Start fresh</h3>
+        <p class="sub">Removes all rooms, tasks, hotspots and history, and starts with an empty home. This cannot be undone — download a backup first if you want to keep your data.</p>
+        <button class="btn danger" id="startFreshBtn">Start fresh</button>
+      </div>
+      <p class="hint" style="margin-top:16px">Home Reset Planner — a single-file web app. Works offline after the first load. No account, no subscription, no monthly fees. Version 2.</p>
+    </section>
+
+  </div></main>
+</div>
+<div class="modal-overlay" id="confirmOverlay">
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
+    <h3 id="confirmTitle">Are you sure?</h3>
+    <p id="confirmMsg"></p>
+    <div class="btn-row" style="justify-content:flex-end">
+      <button class="btn ghost" id="confirmCancel">Cancel</button>
+      <button class="btn danger" id="confirmOk">Confirm</button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+// clean.js — Home Reset Planner core logic (pure functions, no DOM).
+// Shared by the app (inlined into index.html by build.js) and by the Node tests.
+// Dates are local 'YYYY-MM-DD' strings. All functions take an explicit
+// `today` string so tests can pin the date.
+(function (root) {
+  'use strict';
+
+  function pad(n) { return (n < 10 ? '0' : '') + n; }
+  function fmt(d) { return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
+  function parse(s) {
+    var p = s.split('-');
+    return new Date(+p[0], +p[1] - 1, +p[2]);
+  }
+  function addDays(dateStr, n) {
+    var d = parse(dateStr);
+    d.setDate(d.getDate() + n);
+    return fmt(d);
+  }
+  function daysBetween(a, b) { // b - a in whole days
+    return Math.round((parse(b) - parse(a)) / 86400000);
+  }
+  function todayStr(d) { return fmt(d || new Date()); }
+
+  // --- Tasks & routines -------------------------------------------------
+  // task: { id, roomId, title, minutes, energy: 'low'|'med'|'high',
+  //         interval: days between repeats (0 = one-off), lastDone: 'YYYY-MM-DD'|null,
+  //         supplies: optional short note, e.g. 'Microfiber cloth + surface spray' }
+  function daysSinceDone(task, today) {
+    if (!task.lastDone) return Infinity;
+    return daysBetween(task.lastDone, today);
+  }
+  // Days until the task is due again. 0 = due today, negative = overdue.
+  function daysUntilDue(task, today) {
+    if (!task.lastDone) return 0; // never done -> due now
+    if (!task.interval || task.interval <= 0) return Infinity; // one-off, done
+    return task.interval - daysSinceDone(task, today);
+  }
+  function isDue(task, today) { return daysUntilDue(task, today) <= 0; }
+  function isOverdue(task, today) { return daysUntilDue(task, today) < 0; }
+  function dueTasks(tasks, today) { return tasks.filter(function (t) { return isDue(t, today); }); }
+  function nextDueDate(task, today) {
+    if (!task.lastDone) return today;
+    if (!task.interval || task.interval <= 0) return null;
+    return addDays(task.lastDone, task.interval);
+  }
+  function statusOf(task, today) {
+    var d = daysUntilDue(task, today);
+    if (d < 0) return 'overdue';
+    if (d === 0) return 'due';
+    if (d === 1) return 'tomorrow';
+    return 'upcoming';
+  }
+
+  // --- Log & insights ---------------------------------------------------
+  // entry: { id, taskId, title, roomId, minutes, energy, date, time, source }
+  function entriesInRange(log, days, today) {
+    var from = addDays(today, -(days - 1));
+    return log.filter(function (e) { return e.date >= from && e.date <= today; });
+  }
+  function minutesTotal(log, days, today) {
+    return entriesInRange(log, days, today).reduce(function (s, e) { return s + (+e.minutes || 0); }, 0);
+  }
+  function tasksDoneCount(log, days, today) { return entriesInRange(log, days, today).length; }
+
+  // Consecutive days with at least one completion, ending today or yesterday.
+  // Returns 0 when nothing was done today or yesterday.
+  function computeStreak(log, today) {
+    var done = {};
+    log.forEach(function (e) { done[e.date] = true; });
+    var cursor = today;
+    if (!done[cursor]) cursor = addDays(today, -1);
+    if (!done[cursor]) return 0;
+    var streak = 0;
+    while (done[cursor]) { streak++; cursor = addDays(cursor, -1); }
+    return streak;
+  }
+
+  // Counts per weekday (0=Sun..6=Sat) over the last `days` days.
+  function weeklyRhythm(log, days, today) {
+    var counts = [0, 0, 0, 0, 0, 0, 0];
+    entriesInRange(log, days, today).forEach(function (e) {
+      counts[parse(e.date).getDay()]++;
+    });
+    return counts;
+  }
+  // Daily counts for the last `days` days, oldest first: [{date, count, minutes}]
+  function dailyActivity(log, days, today) {
+    var out = [];
+    for (var i = days - 1; i >= 0; i--) {
+      var d = addDays(today, -i);
+      var es = log.filter(function (e) { return e.date === d; });
+      out.push({
+        date: d,
+        count: es.length,
+        minutes: es.reduce(function (s, e) { return s + (+e.minutes || 0); }, 0)
+      });
+    }
+    return out;
+  }
+  function energyBalance(log, days, today) {
+    var b = { low: 0, med: 0, high: 0 };
+    entriesInRange(log, days, today).forEach(function (e) {
+      if (b[e.energy] !== undefined) b[e.energy]++;
+    });
+    return b;
+  }
+  // Rooms ranked by completions in the last `days` days.
+  function mostCaredRooms(log, rooms, days, today) {
+    var byRoom = {};
+    entriesInRange(log, days, today).forEach(function (e) {
+      byRoom[e.roomId] = (byRoom[e.roomId] || 0) + 1;
+    });
+    return rooms.map(function (r) {
+      return { room: r, count: byRoom[r.id] || 0 };
+    }).sort(function (a, b) { return b.count - a.count; });
+  }
+
+  // --- Milestones -------------------------------------------------------
+  // Achievements computed from real data. Each milestone:
+  // { id, title, desc, target, current, unlocked, progress (0..1) }
+  // current is capped at target so progress never exceeds 1.
+  function computeMilestones(log, today) {
+    var streak = computeStreak(log, today);
+    var totalTasks = log.length;
+    var totalMinutes = log.reduce(function (s, e) { return s + (+e.minutes || 0); }, 0);
+    var deepDone = log.some(function (e) { return e.source === 'deep' || e.source === 'deep-plan'; });
+    var days30 = {};
+    entriesInRange(log, 30, today).forEach(function (e) { days30[e.date] = true; });
+    var activeDays = Object.keys(days30).length;
+    var defs = [
+      { id: 'streak-3', title: '3-day streak', desc: 'Cleaned 3 days in a row.', target: 3, current: streak, kind: 'streak' },
+      { id: 'streak-7', title: '7-day streak', desc: 'A full week, one small job a day.', target: 7, current: streak, kind: 'streak' },
+      { id: 'streak-14', title: '14-day streak', desc: 'Two weeks of showing up.', target: 14, current: streak, kind: 'streak' },
+      { id: 'streak-30', title: '30-day streak', desc: 'A whole month of steady care.', target: 30, current: streak, kind: 'streak' },
+      { id: 'tasks-25', title: '25 tasks done', desc: '25 small jobs finished.', target: 25, current: totalTasks, kind: 'tasks' },
+      { id: 'tasks-50', title: '50 tasks done', desc: 'Half a hundred jobs done.', target: 50, current: totalTasks, kind: 'tasks' },
+      { id: 'tasks-100', title: '100 tasks done', desc: 'A hundred jobs — your home notices.', target: 100, current: totalTasks, kind: 'tasks' },
+      { id: 'mins-500', title: '500 minutes of care', desc: 'Over 8 hours spent caring for your home.', target: 500, current: totalMinutes, kind: 'minutes' },
+      { id: 'mins-1000', title: '1000 minutes of care', desc: 'Over 16 hours of steady work.', target: 1000, current: totalMinutes, kind: 'minutes' },
+      { id: 'first-deep', title: 'First Deep Clean', desc: 'Finished your first deep-clean job.', target: 1, current: deepDone ? 1 : 0, kind: 'deep' },
+      { id: 'full-week', title: 'A full week', desc: 'Cleaned on 7 different days in the last 30 days.', target: 7, current: activeDays, kind: 'days' }
+    ];
+    return defs.map(function (d) {
+      var unlocked = d.current >= d.target;
+      return {
+        id: d.id, title: d.title, desc: d.desc, target: d.target,
+        current: Math.min(d.current, d.target), unlocked: unlocked,
+        progress: Math.min(1, d.current / d.target)
+      };
+    });
+  }
+
+  // --- Seasonal Deep Clean Plan -----------------------------------------
+  // Deep-clean jobs are bigger, once-a-season jobs. Base jobs exist in
+  // every season; one extra job per room is specific to the season.
+  // Job: { id, roomId, title, minutes, seasonal: bool }
+  // State keeps done jobs in state.deepDone: { [jobId]: 'YYYY-MM-DD' }.
+  var SEASONS = ['Spring', 'Summer', 'Autumn', 'Winter'];
+  var DEEP_BASE = {
+    r1: [
+      { title: 'Degrease the oven & hob', minutes: 30 },
+      { title: 'Empty & wipe the fridge inside', minutes: 25 },
+      { title: 'Descale the kettle & coffee maker', minutes: 15 }
+    ],
+    r2: [
+      { title: 'Wash pillows & air the duvet', minutes: 20 },
+      { title: 'Clean under the bed', minutes: 20 },
+      { title: 'Sort the wardrobe & donate a bag', minutes: 30 }
+    ],
+    r3: [
+      { title: 'Descale the showerhead', minutes: 15 },
+      { title: 'Deep scrub the grout', minutes: 25 },
+      { title: 'Wash the shower curtain & bath mat', minutes: 15 }
+    ],
+    r4: [
+      { title: 'Shampoo the rug', minutes: 30 },
+      { title: 'Wash cushion covers & throws', minutes: 20 },
+      { title: 'Clean light fixtures & lampshades', minutes: 20 }
+    ],
+    r5: [
+      { title: 'Clean the washer filter & seal', minutes: 15 },
+      { title: 'Clear the dryer vent', minutes: 15 },
+      { title: 'Organise cleaning supplies', minutes: 20 }
+    ]
+  };
+  var DEEP_SEASONAL = {
+    Spring: {
+      r1: { title: 'Wash the kitchen windows', minutes: 20 },
+      r2: { title: 'Swap heavy bedding for lighter layers', minutes: 20 },
+      r3: { title: 'Air out the bathroom & wash the window', minutes: 15 },
+      r4: { title: 'Wash all windows & sills', minutes: 30 },
+      r5: { title: 'Wash winter coats before storing', minutes: 25 }
+    },
+    Summer: {
+      r1: { title: 'Deep clean the freezer', minutes: 25 },
+      r2: { title: 'Wash the curtains', minutes: 20 },
+      r3: { title: 'Clean the extractor fan', minutes: 15 },
+      r4: { title: 'Clean ceiling fans & air vents', minutes: 20 },
+      r5: { title: 'Wash outdoor cushions & doormats', minutes: 20 }
+    },
+    Autumn: {
+      r1: { title: 'Deep clean the pantry & check dates', minutes: 25 },
+      r2: { title: 'Bring out warmer bedding & blankets', minutes: 20 },
+      r3: { title: 'Clean radiators & vents', minutes: 20 },
+      r4: { title: 'Wash windows before the cold sets in', minutes: 25 },
+      r5: { title: 'Store summer clothes & check winter gear', minutes: 25 }
+    },
+    Winter: {
+      r1: { title: 'Deep clean the pantry & spice jars', minutes: 25 },
+      r2: { title: 'Wash heavy blankets & duvets', minutes: 25 },
+      r3: { title: 'Clean the heating vents', minutes: 15 },
+      r4: { title: 'Declutter one shelf or drawer', minutes: 20 },
+      r5: { title: 'Organise winter coats & boots', minutes: 20 }
+    }
+  };
+  function seasonOf(dateStr) {
+    var m = parse(dateStr).getMonth() + 1; // 1-12
+    if (m >= 3 && m <= 5) return 'Spring';
+    if (m >= 6 && m <= 8) return 'Summer';
+    if (m >= 9 && m <= 11) return 'Autumn';
+    return 'Winter';
+  }
+  function deepPlanJobs(season, rooms) {
+    var roomIds = {};
+    rooms.forEach(function (r) { roomIds[r.id] = true; });
+    var jobs = [];
+    Object.keys(DEEP_BASE).forEach(function (roomId) {
+      if (!roomIds[roomId]) return; // room was deleted — skip its jobs
+      DEEP_BASE[roomId].forEach(function (j, i) {
+        jobs.push({ id: 'dp-' + season + '-' + roomId + '-' + i, roomId: roomId, title: j.title, minutes: j.minutes, seasonal: false });
+      });
+      var extra = DEEP_SEASONAL[season] && DEEP_SEASONAL[season][roomId];
+      if (extra) {
+        jobs.push({ id: 'dp-' + season + '-' + roomId + '-s', roomId: roomId, title: extra.title, minutes: extra.minutes, seasonal: true });
+      }
+    });
+    return jobs;
+  }
+  // Progress for one season: overall + per-room { done, total }.
+  function deepPlanProgress(state, season) {
+    var jobs = deepPlanJobs(season, state.rooms);
+    var done = state.deepDone || {};
+    var perRoom = {};
+    state.rooms.forEach(function (r) { perRoom[r.id] = { room: r, done: 0, total: 0 }; });
+    var doneCount = 0;
+    jobs.forEach(function (j) {
+      if (perRoom[j.roomId]) perRoom[j.roomId].total++;
+      if (done[j.id]) {
+        doneCount++;
+        if (perRoom[j.roomId]) perRoom[j.roomId].done++;
+      }
+    });
+    return { jobs: jobs, done: doneCount, total: jobs.length, perRoom: perRoom };
+  }
+
+  // --- Sessions ---------------------------------------------------------
+  // Build a focused task list: quick = short + low energy only;
+  // deep = anything, longer. Fills up to `minutes` of due tasks.
+  function buildSession(tasks, opts, today) {
+    var type = opts.type || 'quick';
+    var roomId = opts.roomId || null;
+    var budget = opts.minutes || 15;
+    var energy = opts.energy || null;
+    var pool = tasks.filter(function (t) {
+      if (!isDue(t, today)) return false;
+      if (roomId && t.roomId !== roomId) return false;
+      if (type === 'quick' && t.energy !== 'low') return false;
+      if (energy && t.energy !== energy) return false;
+      return true;
+    });
+    // Shortest first for quick sessions, longest first for deep cleans.
+    pool.sort(function (a, b) {
+      return type === 'quick' ? a.minutes - b.minutes : b.minutes - a.minutes;
+    });
+    var picked = [];
+    var total = 0;
+    pool.forEach(function (t) {
+      if (total + t.minutes <= budget || picked.length === 0) {
+        picked.push(t);
+        total += t.minutes;
+      }
+    });
+    return { tasks: picked, totalMinutes: total };
+  }
+
+  // --- Sample data ------------------------------------------------------
+  var _uid = 0;
+  function uid(p) { _uid++; return p + _uid + '_' + Date.now().toString(36); }
+
+  function sampleState(today) {
+    _uid = 0;
+    var rooms = [
+      { id: 'r1', name: 'Kitchen' },
+      { id: 'r2', name: 'Bedroom' },
+      { id: 'r3', name: 'Bathroom' },
+      { id: 'r4', name: 'Living Room' },
+      { id: 'r5', name: 'Laundry Room' }
+    ];
+    // lastDone chosen so ~4 tasks are due today, others due in 1-3 days.
+    function T(roomId, title, minutes, energy, interval, lastDoneDaysAgo, supplies) {
+      return {
+        id: uid('t'), roomId: roomId, title: title, minutes: minutes,
+        energy: energy, interval: interval,
+        lastDone: lastDoneDaysAgo === null ? null : addDays(today, -lastDoneDaysAgo),
+        supplies: supplies || ''
+      };
+    }
+    var tasks = [
+      T('r1', 'Wipe counters & stovetop', 5, 'low', 1, 1, 'Microfiber cloth + surface spray'),
+      T('r1', 'Take out the trash', 3, 'low', 1, 1, ''),
+      T('r1', 'Deep clean the stovetop', 10, 'med', 3, 2, 'Degreaser + scouring pad'),
+      T('r1', 'Purge expired fridge items', 20, 'high', 7, 5, 'Food-safe surface spray + microfiber towels'),
+      T('r1', 'Mop the kitchen floor', 15, 'med', 7, 6, 'Bucket + floor cleaner'),
+      T('r2', 'Make the bed', 5, 'low', 1, 0, ''),
+      T('r2', 'Clear the bedroom chair pile', 10, 'low', 3, 3, ''),
+      T('r2', 'Change the sheets', 15, 'med', 7, 4, 'Fresh sheets + pillowcases'),
+      T('r2', 'Dust the shelves', 10, 'low', 7, 5, 'Duster + microfiber cloth'),
+      T('r3', 'Wipe sink & polish mirror', 5, 'low', 2, 2, 'Glass cleaner + microfiber cloth'),
+      T('r3', 'Scrub the toilet', 10, 'med', 3, 2, 'Toilet brush + cleaner'),
+      T('r3', 'Clean the shower', 15, 'med', 7, 6, 'Bathroom spray + sponge'),
+      T('r3', 'Restock towels & soap', 5, 'low', 3, 2, 'Clean towels + soap refill'),
+      T('r4', 'Fluff cushions & fold throws', 5, 'low', 2, 1, ''),
+      T('r4', 'Vacuum the rug', 15, 'med', 3, 2, 'Vacuum cleaner'),
+      T('r4', 'Dust the TV stand', 10, 'low', 7, 5, 'Duster'),
+      T('r4', 'Tidy the coffee table', 5, 'low', 1, 1, ''),
+      T('r5', 'Start a load of laundry', 5, 'low', 2, 1, 'Detergent'),
+      T('r5', 'Fold & put away clothes', 15, 'med', 3, 1, ''),
+      T('r5', 'Wipe the machines', 5, 'low', 7, 6, 'Warm soapy water + cloth')
+    ];
+    var hotspots = [
+      { id: uid('h'), name: 'Kitchen counter', roomId: 'r1', note: 'Mail, keys and dishes land here.' },
+      { id: uid('h'), name: 'Bedroom chair', roomId: 'r2', note: 'The "chairdrobe" — clothes pile up fast.' },
+      { id: uid('h'), name: 'Entryway table', roomId: 'r4', note: 'Shoes, bags and post collect here.' },
+      { id: uid('h'), name: 'Laundry corner', roomId: 'r5', note: 'Clean clothes waiting to be folded.' }
+    ];
+    // 30 days of realistic history: completions on most days, a 5-day
+    // streak ending today. Deterministic (seeded) so the demo always looks alive.
+    var seed = 42;
+    function rnd() { seed = (seed * 1103515245 + 12345) % 2147483648; return seed / 2147483648; }
+    var log = [];
+    var times = ['07:05', '07:34', '08:12', '12:40', '18:05', '19:22', '20:15'];
+    for (var d = 29; d >= 0; d--) {
+      var date = addDays(today, -d);
+      var must = d <= 4; // last 5 days always have entries -> streak of 5
+      var n = must ? 2 + Math.floor(rnd() * 3) : (rnd() < 0.72 ? 1 + Math.floor(rnd() * 3) : 0);
+      for (var k = 0; k < n; k++) {
+        var t = tasks[Math.floor(rnd() * tasks.length)];
+        log.push({
+          id: uid('l'), taskId: t.id, title: t.title, roomId: t.roomId,
+          minutes: t.minutes, energy: t.energy, date: date,
+          time: times[Math.floor(rnd() * times.length)],
+          source: rnd() < 0.5 ? 'session' : 'manual'
+        });
+      }
+    }
+    // Sort newest first for display.
+    log.sort(function (a, b) {
+      if (a.date !== b.date) return a.date < b.date ? 1 : -1;
+      return a.time < b.time ? 1 : -1;
+    });
+    return {
+      version: 2,
+      userName: 'Alex',
+      rooms: rooms,
+      tasks: tasks,
+      hotspots: hotspots,
+      log: log,
+      deepDone: {}
+    };
+  }
+
+  var api = {
+    fmt: fmt, parse: parse, addDays: addDays, daysBetween: daysBetween, todayStr: todayStr,
+    daysSinceDone: daysSinceDone, daysUntilDue: daysUntilDue, isDue: isDue,
+    isOverdue: isOverdue, dueTasks: dueTasks, nextDueDate: nextDueDate, statusOf: statusOf,
+    entriesInRange: entriesInRange, minutesTotal: minutesTotal, tasksDoneCount: tasksDoneCount,
+    computeStreak: computeStreak, weeklyRhythm: weeklyRhythm, dailyActivity: dailyActivity,
+    energyBalance: energyBalance, mostCaredRooms: mostCaredRooms,
+    buildSession: buildSession, sampleState: sampleState, uid: uid,
+    computeMilestones: computeMilestones, seasonOf: seasonOf,
+    deepPlanJobs: deepPlanJobs, deepPlanProgress: deepPlanProgress, SEASONS: SEASONS
+  };
+
+  if (typeof module !== 'undefined' && module.exports) module.exports = api;
+  root.HomeReset = api;
+})(typeof window !== 'undefined' ? window : globalThis);
+
+</script>
+<script>
+// app.js — Home Reset Planner UI (v2). Runs in the browser; clean.js (HomeReset)
+// is loaded before this file. State lives in localStorage under
+// 'homeResetPlannerV2'; sample data is pre-filled on first run.
+(function () {
+  'use strict';
+  var H = window.HomeReset;
+  var STORAGE_KEY = 'homeResetPlannerV2';
+  window.__errors = [];
+  window.addEventListener('error', function (e) { window.__errors.push(String(e.message || e.error)); });
+
+  var state = null;
+  var isSample = false;
+  var currentSession = null; // { tasks: [taskIds], done: {id:true} }
+  var deepSeason = null; // selected season on the Deep Clean Plan screen
+  var timer = { totalSec: 15 * 60, remainingMs: 15 * 60 * 1000, running: false, endAt: 0, iv: null };
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  function load() {
+    try {
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        var parsed = JSON.parse(raw);
+        if (parsed && parsed.version === 2 && Array.isArray(parsed.rooms)) {
+          if (!parsed.deepDone) parsed.deepDone = {};
+          isSample = !!parsed.sample;
+          return parsed;
+        }
+      }
+    } catch (e) { /* storage blocked — fall through to sample */ }
+    var s = H.sampleState(H.todayStr());
+    s.sample = true;
+    isSample = true;
+    return s;
+  }
+  function save() {
+    state.sample = isSample;
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) { /* ignore */ }
+  }
+  function toast(msg) {
+    var t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(function () { t.classList.remove('show'); }, 2600);
+  }
+  // --- Styled in-app confirm (replaces all native confirm() calls) ---
+  var confirmResolve = null;
+  function askConfirm(opts) {
+    return new Promise(function (resolve) {
+      document.getElementById('confirmTitle').textContent = opts.title || 'Are you sure?';
+      document.getElementById('confirmMsg').textContent = opts.message || '';
+      document.getElementById('confirmOk').textContent = opts.confirmLabel || 'Confirm';
+      document.getElementById('confirmOverlay').classList.add('show');
+      confirmResolve = resolve;
+    });
+  }
+  function closeConfirm(result) {
+    document.getElementById('confirmOverlay').classList.remove('show');
+    if (confirmResolve) { var r = confirmResolve; confirmResolve = null; r(result); }
+  }
+  function suppliesLine(task) {
+    return task.supplies ? '<br><span class="hint">Supplies: ' + esc(task.supplies) + '</span>' : '';
+  }
+  function roomById(id) { return state.rooms.find(function (r) { return r.id === id; }); }
+  function taskById(id) { return state.tasks.find(function (t) { return t.id === id; }); }
+  function today() { return H.todayStr(); }
+  function greeting() {
+    var h = new Date().getHours();
+    if (h < 12) return 'Good morning';
+    if (h < 17) return 'Good afternoon';
+    return 'Good evening';
+  }
+
+  // --- Navigation -------------------------------------------------------
+  var SCREENS = ['dashboard', 'rooms', 'sessions', 'routines', 'deep-plan', 'timer', 'log', 'insights', 'milestones', 'settings'];
+  function showScreen(name) {
+    if (SCREENS.indexOf(name) < 0) name = 'dashboard';
+    document.querySelectorAll('.screen').forEach(function (el) { el.classList.remove('active'); });
+    var sec = document.getElementById('screen-' + name);
+    if (sec) sec.classList.add('active');
+    document.querySelectorAll('.nav-btn').forEach(function (b) {
+      b.classList.toggle('active', b.getAttribute('data-screen') === name);
+    });
+    render(name);
+    window.scrollTo(0, 0);
+  }
+  function render(name) {
+    ({ dashboard: renderDashboard, rooms: renderRooms, sessions: renderSessions,
+       routines: renderRoutines, 'deep-plan': renderDeepPlan, timer: renderTimer, log: renderLog,
+       insights: renderInsights, milestones: renderMilestones, settings: renderSettings })[name]();
+    var streak = H.computeStreak(state.log, today());
+    document.getElementById('sideStreak').textContent = streak > 0 ? 'Current streak: ' + streak + (streak === 1 ? ' day' : ' days') + ' — keep going.' : 'No streak yet — one small job starts it.';
+    document.getElementById('sampleBanner').classList.toggle('show', isSample);
+  }
+
+  // --- Dashboard --------------------------------------------------------
+  function statCard(num, lbl, hint, teal) {
+    return '<div class="stat' + (teal ? ' teal' : '') + '"><div class="num">' + num + '</div><div class="lbl">' + lbl + '</div><div class="hint">' + hint + '</div></div>';
+  }
+  function energyPill(e) {
+    return '<span class="pill ' + e + '">' + (e === 'low' ? 'Low energy' : e === 'med' ? 'Medium' : 'High energy') + '</span>';
+  }
+  function renderDashboard() {
+    var t = today();
+    document.getElementById('greeting').textContent = greeting() + ', ' + (state.userName || 'friend');
+    var due = H.dueTasks(state.tasks, t);
+    var done7 = H.tasksDoneCount(state.log, 7, t);
+    var min7 = H.minutesTotal(state.log, 7, t);
+    var streak = H.computeStreak(state.log, t);
+    document.getElementById('dashStreak').textContent = streak > 0 ? 'Streak: ' + streak + (streak === 1 ? ' day' : ' days') : 'No streak yet';
+    document.getElementById('dashSub').textContent = due.length + ' task' + (due.length === 1 ? '' : 's') + ' need' + (due.length === 1 ? 's' : '') + ' attention today across ' + state.rooms.length + ' rooms. Start with one small job.';
+    document.getElementById('dashStats').innerHTML =
+      statCard(due.length, 'Need attention', 'Tasks due today', true) +
+      statCard(done7, 'Done this week', 'Tasks completed, last 7 days') +
+      statCard(min7 + '<small> min</small>', 'Cleaning time', 'Minutes this week') +
+      statCard(state.rooms.length, 'Rooms', state.hotspots.length + ' clutter hotspots');
+    var dueEl = document.getElementById('dashDue');
+    if (!due.length) {
+      dueEl.innerHTML = '<p class="empty">Nothing due today — you are all caught up. Enjoy the calm.</p>';
+    } else {
+      dueEl.innerHTML = due.slice(0, 8).map(function (task) {
+        var room = roomById(task.roomId);
+        return '<div class="task-row"><button class="check" data-action="complete" data-id="' + task.id + '" title="Mark done">&#10003;</button>' +
+          '<div class="t"><b>' + esc(task.title) + '</b><span>' + esc(room ? room.name : '') + ' &middot; ' + task.minutes + ' min &middot; ' + (task.interval ? 'every ' + task.interval + (task.interval === 1 ? ' day' : ' days') : 'one-off') + '</span>' + suppliesLine(task) + '</div>' +
+          energyPill(task.energy) + (H.isOverdue(task, t) ? ' <span class="pill overdue">Overdue</span>' : ' <span class="pill due">Due today</span>') + '</div>';
+      }).join('') + (due.length > 8 ? '<p class="hint" style="margin-top:10px">+ ' + (due.length - 8) + ' more due — see Routines for the full list.</p>' : '');
+    }
+    document.getElementById('dashRooms').innerHTML = state.rooms.map(function (r) {
+      var d = state.tasks.filter(function (x) { return x.roomId === r.id && H.isDue(x, t); }).length;
+      var total = state.tasks.filter(function (x) { return x.roomId === r.id; }).length;
+      return '<div class="task-row"><div class="t"><b><span class="dot"></span>' + esc(r.name) + '</b><span>' + total + ' tasks</span></div>' +
+        (d > 0 ? '<span class="pill due">' + d + ' due</span>' : '<span class="pill ok">All clear</span>') + '</div>';
+    }).join('');
+    var hs = document.getElementById('dashHotspots');
+    hs.innerHTML = state.hotspots.length ? state.hotspots.map(function (h) {
+      var room = roomById(h.roomId);
+      return '<div class="task-row"><div class="t"><b>' + esc(h.name) + '</b><span>' + esc(room ? room.name : '') + (h.note ? ' &middot; ' + esc(h.note) : '') + '</span></div></div>';
+    }).join('') : '<p class="empty">No hotspots yet — add them in Rooms.</p>';
+    var week = H.dailyActivity(state.log, 7, t);
+    var max = Math.max.apply(null, week.map(function (d) { return d.count; }).concat([1]));
+    document.getElementById('dashWeek').innerHTML = '<div class="bars">' + week.map(function (d) {
+      return '<div class="bar' + (d.count === 0 ? ' zero' : '') + (d.date === t ? ' today' : '') + '" style="height:' + Math.round(d.count / max * 100) + '%" title="' + d.date + ': ' + d.count + ' tasks, ' + d.minutes + ' min"></div>';
+    }).join('') + '</div>';
+    document.getElementById('dashWeekLabels').innerHTML = week.map(function (d) {
+      return '<span>' + ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][H.parse(d.date).getDay()] + '</span>';
+    }).join('');
+  }
+
+  // --- Rooms ------------------------------------------------------------
+  function renderRooms() {
+    var t = today();
+    var wrap = document.getElementById('roomList');
+    wrap.innerHTML = state.rooms.map(function (r) {
+      var tasks = state.tasks.filter(function (x) { return x.roomId === r.id; });
+      var spots = state.hotspots.filter(function (h) { return h.roomId === r.id; });
+      var rows = tasks.length ? tasks.map(function (task) {
+        var st = H.statusOf(task, t);
+        return '<div class="task-row"><button class="check" data-action="complete" data-id="' + task.id + '" title="Mark done">&#10003;</button>' +
+          '<div class="t"><b>' + esc(task.title) + '</b><span>' + task.minutes + ' min &middot; ' + (task.interval ? 'every ' + task.interval + (task.interval === 1 ? ' day' : ' days') : 'one-off') + ' &middot; ' + (task.lastDone ? 'last done ' + task.lastDone : 'never done') + '</span>' + suppliesLine(task) + '</div>' +
+          energyPill(task.energy) +
+          (st === 'overdue' ? ' <span class="pill overdue">Overdue</span>' : st === 'due' ? ' <span class="pill due">Due today</span>' : st === 'tomorrow' ? ' <span class="pill">Due tomorrow</span>' : ' <span class="pill ok">On track</span>') +
+          ' <button class="btn small ghost" data-action="del-task" data-id="' + task.id + '">Delete</button></div>';
+      }).join('') : '<p class="empty">No tasks in this room yet.</p>';
+      var spotsHtml = spots.length ? '<p class="hint" style="margin:8px 0 0">Hotspots: ' + spots.map(function (h) { return esc(h.name); }).join(', ') + '</p>' : '';
+      return '<div class="card" style="margin-bottom:14px"><div class="room-head"><h3><span class="dot"></span>' + esc(r.name) + '</h3>' +
+        '<button class="btn small danger" data-action="del-room" data-id="' + r.id + '">Delete room</button></div>' +
+        '<div style="margin-top:10px">' + rows + '</div>' + spotsHtml +
+        '<div class="form-grid" style="margin-top:14px"><div><input type="text" id="nt-' + r.id + '" placeholder="New task, e.g. Wipe the sink"></div>' +
+        '<div style="display:flex;gap:8px"><select id="nm-' + r.id + '" style="max-width:90px"><option>5</option><option>10</option><option>15</option><option>20</option><option>30</option></select>' +
+        '<select id="ne-' + r.id + '" style="max-width:120px"><option value="low">Low energy</option><option value="med">Medium</option><option value="high">High</option></select>' +
+        '<select id="ni-' + r.id + '" style="max-width:130px"><option value="1">Daily</option><option value="2">Every 2 days</option><option value="3" selected>Every 3 days</option><option value="7">Weekly</option><option value="0">One-off</option></select>' +
+        '<button class="btn small" data-action="add-task" data-id="' + r.id + '">Add task</button></div></div>' +
+        '<div style="margin-top:10px"><input type="text" id="ns-' + r.id + '" placeholder="Supplies (optional), e.g. Microfiber cloth + surface spray"></div>' +
+        '<div class="form-grid" style="margin-top:10px"><div><input type="text" id="nh-' + r.id + '" placeholder="Add a clutter hotspot, e.g. Bedside table"></div>' +
+        '<div><button class="btn small ghost" data-action="add-hotspot" data-id="' + r.id + '">Add hotspot</button></div></div>' +
+        '</div>';
+    }).join('');
+  }
+
+  // --- Sessions ---------------------------------------------------------
+  function renderSessions() {
+    var sel = document.getElementById('sessRoom');
+    var cur = sel.value;
+    sel.innerHTML = '<option value="">Any room</option>' + state.rooms.map(function (r) {
+      return '<option value="' + r.id + '"' + (cur === r.id ? ' selected' : '') + '>' + esc(r.name) + '</option>';
+    }).join('');
+    var list = document.getElementById('sessList');
+    if (!currentSession) { list.innerHTML = ''; return; }
+    var t = today();
+    if (!currentSession.tasks.length) {
+      list.innerHTML = '<p class="empty">Nothing due matches those choices — try a longer session, any room, or any energy level. Or add tasks in Rooms first.</p>';
+      return;
+    }
+    list.innerHTML = currentSession.tasks.map(function (id) {
+      var task = taskById(id);
+      if (!task) return '';
+      var room = roomById(task.roomId);
+      var done = !!currentSession.done[id];
+      return '<div class="task-row' + (done ? ' done' : '') + '"><button class="check' + (done ? ' done' : '') + '" data-action="sess-done" data-id="' + task.id + '" title="Mark done">&#10003;</button>' +
+        '<div class="t"><b>' + esc(task.title) + '</b><span>' + esc(room ? room.name : '') + ' &middot; ' + task.minutes + ' min</span>' + suppliesLine(task) + '</div>' + energyPill(task.energy) + '</div>';
+    }).join('');
+  }
+  function buildSession() {
+    var type = document.getElementById('sessType').value;
+    var roomId = document.getElementById('sessRoom').value || null;
+    var minutes = parseInt(document.getElementById('sessMinutes').value, 10);
+    var energy = document.getElementById('sessEnergy').value || null;
+    var res = H.buildSession(state.tasks, { type: type, roomId: roomId, minutes: minutes, energy: energy }, today());
+    currentSession = { tasks: res.tasks.map(function (t) { return t.id; }), done: {}, type: type };
+    document.getElementById('sessSummary').textContent = res.tasks.length
+      ? (type === 'quick' ? 'Quick Tidy' : 'Deep Clean') + ' — ' + res.tasks.length + ' tasks, about ' + res.totalMinutes + ' minutes. Tick each one off as you finish it.'
+      : 'Nothing due matches those choices.';
+    renderSessions();
+  }
+
+  // --- Routines ---------------------------------------------------------
+  function renderRoutines() {
+    var t = today();
+    var sorted = state.tasks.slice().sort(function (a, b) { return H.daysUntilDue(a, t) - H.daysUntilDue(b, t); });
+    var rows = sorted.map(function (task) {
+      var room = roomById(task.roomId);
+      var d = H.daysUntilDue(task, t);
+      var st = H.statusOf(task, t);
+      var dueTxt = task.interval ? (d < 0 ? 'Overdue by ' + (-d) + 'd' : d === 0 ? 'Due today' : d === 1 ? 'Due tomorrow' : 'Due in ' + d + ' days') : 'Done — one-off';
+      var next = H.nextDueDate(task, t);
+      return '<tr><td><b>' + esc(task.title) + '</b><br><span class="hint">' + esc(room ? room.name : '') + (task.supplies ? ' &middot; Supplies: ' + esc(task.supplies) : '') + '</span></td>' +
+        '<td>' + (task.interval ? 'Every ' + task.interval + (task.interval === 1 ? ' day' : ' days') : 'One-off') + '</td>' +
+        '<td>' + (task.lastDone || 'Never') + '</td>' +
+        '<td>' + (next || '—') + '</td>' +
+        '<td>' + (st === 'overdue' ? '<span class="pill overdue">' + dueTxt + '</span>' : st === 'due' ? '<span class="pill due">' + dueTxt + '</span>' : '<span class="pill ok">' + dueTxt + '</span>') + '</td>' +
+        '<td><button class="btn small" data-action="complete" data-id="' + task.id + '">Done</button></td></tr>';
+    }).join('');
+    document.getElementById('routineTable').innerHTML = '<table class="tbl"><thead><tr><th>Task</th><th>Rhythm</th><th>Last done</th><th>Next due</th><th>Status</th><th></th></tr></thead><tbody>' + rows + '</tbody></table>';
+  }
+
+  // --- Deep Clean Plan --------------------------------------------------
+  function renderDeepPlan() {
+    if (!deepSeason) deepSeason = H.seasonOf(today());
+    if (!state.deepDone) state.deepDone = {};
+    var prog = H.deepPlanProgress(state, deepSeason);
+    var pct = prog.total > 0 ? Math.round(prog.done / prog.total * 100) : 0;
+    document.getElementById('deepSeasonRow').innerHTML = H.SEASONS.map(function (s) {
+      return '<button class="chip' + (s === deepSeason ? ' active' : '') + '" data-season="' + s + '">' + s + '</button>';
+    }).join('');
+    document.getElementById('deepOverall').innerHTML =
+      '<div class="hbar-row"><div class="n">Overall</div><div class="hbar-track"><div class="hbar-fill" style="width:' + pct + '%"></div></div><div class="v">' + prog.done + ' / ' + prog.total + '</div></div>' +
+      '<p class="sub" style="margin:8px 0 0">' + (prog.done === prog.total && prog.total > 0 ? 'Season complete — every deep-clean job is done. Enjoy the calm.' : pct + '% done this season. Tick a job off and it is logged like any other completed task.') + '</p>';
+    var wrap = document.getElementById('deepRooms');
+    if (!state.rooms.length) { wrap.innerHTML = '<p class="empty">No rooms yet — add rooms first, then plan the season.</p>'; return; }
+    wrap.innerHTML = state.rooms.map(function (r) {
+      var pr = prog.perRoom[r.id] || { done: 0, total: 0 };
+      var rpct = pr.total > 0 ? Math.round(pr.done / pr.total * 100) : 0;
+      var jobs = prog.jobs.filter(function (j) { return j.roomId === r.id; });
+      if (!jobs.length) return '';
+      var rows = jobs.map(function (j) {
+        var done = !!state.deepDone[j.id];
+        return '<div class="task-row' + (done ? ' done' : '') + '"><button class="check' + (done ? ' done' : '') + '" data-action="deep-job" data-id="' + j.id + '" title="' + (done ? 'Undo — remove from log' : 'Mark done') + '">&#10003;</button>' +
+          '<div class="t"><b>' + esc(j.title) + '</b><span>' + j.minutes + ' min' + (state.deepDone[j.id] ? ' &middot; done ' + state.deepDone[j.id] : '') + '</span></div>' +
+          (j.seasonal ? ' <span class="pill due">' + esc(deepSeason) + '</span>' : '') + '</div>';
+      }).join('');
+      return '<div class="card" style="margin-bottom:14px"><div class="room-head"><h3><span class="dot"></span>' + esc(r.name) + '</h3><span class="pill' + (rpct === 100 && pr.total > 0 ? ' ok' : '') + '">' + pr.done + ' / ' + pr.total + '</span></div>' +
+        '<div class="hbar-track" style="margin-top:10px"><div class="hbar-fill" style="width:' + rpct + '%"></div></div>' +
+        '<div style="margin-top:8px">' + rows + '</div></div>';
+    }).join('');
+  }
+  function toggleDeepJob(jobId) {
+    var prog = H.deepPlanProgress(state, deepSeason);
+    var job = null;
+    prog.jobs.forEach(function (j) { if (j.id === jobId) job = j; });
+    if (!job) return;
+    if (!state.deepDone) state.deepDone = {};
+    var t = today();
+    if (state.deepDone[jobId]) {
+      delete state.deepDone[jobId];
+      state.log = state.log.filter(function (e) { return e.deepJobId !== jobId; });
+      save(); renderDeepPlan(); toast('Removed from your log.');
+      return;
+    }
+    var now = new Date();
+    state.deepDone[jobId] = t;
+    state.log.unshift({
+      id: H.uid('l'), taskId: null, title: job.title, roomId: job.roomId,
+      minutes: job.minutes, energy: 'med', date: t,
+      time: (now.getHours() < 10 ? '0' : '') + now.getHours() + ':' + (now.getMinutes() < 10 ? '0' : '') + now.getMinutes(),
+      source: 'deep-plan', deepJobId: jobId
+    });
+    save(); renderDeepPlan(); toast('Logged — "' + job.title + '".');
+  }
+
+  // --- Milestones -------------------------------------------------------
+  function renderMilestones() {
+    var t = today();
+    var ms = H.computeMilestones(state.log, t);
+    var unlocked = ms.filter(function (m) { return m.unlocked; }).length;
+    document.getElementById('mileSummary').textContent = unlocked + ' of ' + ms.length + ' unlocked — earned from your real cleaning history, not invented numbers.';
+    document.getElementById('mileGrid').innerHTML = ms.map(function (m) {
+      var pct = Math.round(m.progress * 100);
+      return '<div class="card' + (m.unlocked ? ' mile-unlocked' : '') + '"><h3>' + (m.unlocked ? '&#127942; ' : '') + esc(m.title) + '</h3>' +
+        '<p class="sub">' + esc(m.desc) + '</p>' +
+        (m.unlocked
+          ? '<span class="pill ok">Unlocked</span>'
+          : '<div class="hbar-track" style="margin-top:10px"><div class="hbar-fill" style="width:' + pct + '%"></div></div>' +
+            '<p class="hint" style="margin:8px 0 0">' + m.current + ' of ' + m.target + ' — ' + pct + '% there</p>') +
+        '</div>';
+    }).join('');
+  }
+
+  // --- Timer ------------------------------------------------------------
+  function fmtClock(ms) {
+    var s = Math.max(0, Math.ceil(ms / 1000));
+    var m = Math.floor(s / 60), r = s % 60;
+    return (m < 10 ? '0' : '') + m + ':' + (r < 10 ? '0' : '') + r;
+  }
+  function renderTimer() {
+    document.getElementById('timerDisplay').textContent = fmtClock(timer.remainingMs);
+    document.getElementById('timerStart').textContent = timer.running ? 'Running…' : (timer.remainingMs < timer.totalSec * 1000 ? 'Resume' : 'Start');
+    document.getElementById('timerStart').disabled = timer.running;
+    document.getElementById('timerPause').disabled = !timer.running;
+    document.getElementById('timerSub').textContent = timer.running ? 'Focus on one job. The timer is running.' : (timer.remainingMs <= 0 ? 'Time is up — nice work.' : 'Ready when you are.');
+  }
+  function setTimerMinutes(min) {
+    stopTimerInterval();
+    timer.totalSec = min * 60;
+    timer.remainingMs = min * 60 * 1000;
+    timer.running = false;
+    document.getElementById('timerDone').classList.remove('show');
+    document.querySelectorAll('#timerChips .chip').forEach(function (c) {
+      c.classList.toggle('active', parseInt(c.getAttribute('data-min'), 10) === min);
+    });
+    renderTimer();
+  }
+  function stopTimerInterval() { if (timer.iv) { clearInterval(timer.iv); timer.iv = null; } }
+  function startTimer() {
+    if (timer.running) return;
+    if (timer.remainingMs <= 0) { timer.remainingMs = timer.totalSec * 1000; }
+    timer.running = true;
+    timer.endAt = Date.now() + timer.remainingMs;
+    document.getElementById('timerDone').classList.remove('show');
+    timer.iv = setInterval(function () {
+      timer.remainingMs = timer.endAt - Date.now();
+      if (timer.remainingMs <= 0) {
+        timer.remainingMs = 0;
+        stopTimerInterval();
+        timer.running = false;
+        document.getElementById('timerDone').classList.add('show');
+      }
+      renderTimer();
+    }, 250);
+    renderTimer();
+  }
+  function pauseTimer() { if (!timer.running) return; stopTimerInterval(); timer.remainingMs = timer.endAt - Date.now(); timer.running = false; renderTimer(); }
+  function resetTimer() { stopTimerInterval(); timer.running = false; timer.remainingMs = timer.totalSec * 1000; document.getElementById('timerDone').classList.remove('show'); renderTimer(); }
+
+  // --- Log --------------------------------------------------------------
+  function sourceLabel(s) {
+    return { 'manual': 'Manual', 'session': 'Session', 'deep': 'Deep session', 'timer': 'Timer', 'deep-plan': 'Deep plan' }[s] || s || '';
+  }
+  function renderLog() {
+    var range = parseInt(document.getElementById('logFilterRange').value, 10);
+    var roomSel = document.getElementById('logFilterRoom');
+    var roomVal = roomSel.value;
+    roomSel.innerHTML = '<option value="">All rooms</option>' + state.rooms.map(function (r) {
+      return '<option value="' + r.id + '"' + (roomVal === r.id ? ' selected' : '') + '>' + esc(r.name) + '</option>';
+    }).join('');
+    var t = today();
+    var entries = state.log.filter(function (e) {
+      if (roomVal && e.roomId !== roomVal) return false;
+      if (range > 0 && e.date < H.addDays(t, -(range - 1))) return false;
+      return true;
+    });
+    var mins = entries.reduce(function (s, e) { return s + (+e.minutes || 0); }, 0);
+    document.getElementById('logSummary').textContent = entries.length + ' completed task' + (entries.length === 1 ? '' : 's') + ' · ' + mins + ' minutes total.';
+    if (!entries.length) { document.getElementById('logTable').innerHTML = '<p class="empty">Nothing here yet — complete a task and it will appear in your history.</p>'; return; }
+    document.getElementById('logTable').innerHTML = '<table class="tbl"><thead><tr><th>Date</th><th>Task</th><th>Room</th><th>Minutes</th><th>Energy</th><th>Source</th></tr></thead><tbody>' +
+      entries.slice(0, 200).map(function (e) {
+        var room = roomById(e.roomId);
+        return '<tr><td>' + e.date + '<br><span class="hint">' + esc(e.time || '') + '</span></td><td>' + esc(e.title) + '</td><td>' + esc(room ? room.name : '') + '</td><td>' + e.minutes + '</td><td>' + energyPill(e.energy) + '</td><td><span class="hint">' + esc(sourceLabel(e.source)) + '</span></td></tr>';
+      }).join('') + '</tbody></table>' + (entries.length > 200 ? '<p class="hint">Showing the latest 200 of ' + entries.length + ' entries.</p>' : '');
+  }
+
+  // --- Insights ---------------------------------------------------------
+  function hbarRows(items, maxVal, unit) {
+    return items.map(function (it) {
+      var pct = maxVal > 0 ? Math.round(it.value / maxVal * 100) : 0;
+      return '<div class="hbar-row"><div class="n">' + esc(it.label) + '</div><div class="hbar-track"><div class="hbar-fill" style="width:' + pct + '%"></div></div><div class="v">' + it.value + (unit || '') + '</div></div>';
+    }).join('');
+  }
+  function renderInsights() {
+    var t = today();
+    var done30 = H.tasksDoneCount(state.log, 30, t);
+    var min30 = H.minutesTotal(state.log, 30, t);
+    var streak = H.computeStreak(state.log, t);
+    var done7 = H.tasksDoneCount(state.log, 7, t);
+    document.getElementById('insightStats').innerHTML =
+      statCard(done30, 'Tasks in 30 days', 'Completed', true) +
+      statCard(min30 + '<small> min</small>', 'Minutes in 30 days', (min30 / 60).toFixed(1) + ' hours of care') +
+      statCard(streak + '<small> day' + (streak === 1 ? '' : 's') + '</small>', 'Current streak', 'Consecutive days with a clean') +
+      statCard(done7, 'Tasks this week', 'Last 7 days');
+    var act = H.dailyActivity(state.log, 30, t);
+    var max = Math.max.apply(null, act.map(function (d) { return d.count; }).concat([1]));
+    document.getElementById('chart30').innerHTML = act.map(function (d) {
+      return '<div class="bar' + (d.count === 0 ? ' zero' : '') + (d.date === t ? ' today' : '') + '" style="height:' + Math.round(d.count / max * 100) + '%" title="' + d.date + ': ' + d.count + ' tasks, ' + d.minutes + ' min"></div>';
+    }).join('');
+    var labelsEl = document.getElementById('chart30Labels');
+    labelsEl.classList.add('spread');
+    labelsEl.innerHTML = '<span>30 days ago</span><span>Today</span>';
+    var rhythm = H.weeklyRhythm(state.log, 30, t);
+    var days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    var rmax = Math.max.apply(null, rhythm.concat([1]));
+    document.getElementById('chartWeek').innerHTML = hbarRows(days.map(function (d, i) { return { label: d.slice(0, 3), value: rhythm[i] }; }), rmax);
+    var bal = H.energyBalance(state.log, 30, t);
+    var bmax = Math.max(bal.low, bal.med, bal.high, 1);
+    document.getElementById('chartEnergy').innerHTML = hbarRows([
+      { label: 'Low', value: bal.low }, { label: 'Medium', value: bal.med }, { label: 'High', value: bal.high }
+    ], bmax);
+    var cared = H.mostCaredRooms(state.log, state.rooms, 30, t);
+    var cmax = Math.max.apply(null, cared.map(function (c) { return c.count; }).concat([1]));
+    document.getElementById('chartRooms').innerHTML = hbarRows(cared.map(function (c) { return { label: c.room.name, value: c.count }; }), cmax);
+  }
+
+  // --- Settings ---------------------------------------------------------
+  function renderSettings() {
+    document.getElementById('setName').value = state.userName || '';
+  }
+  function download(filename, text, mime) {
+    var blob = new Blob([text], { type: mime || 'application/octet-stream' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+  }
+  function exportJSON() {
+    download('home-reset-planner-backup.json', JSON.stringify(state, null, 2), 'application/json');
+    toast('Backup downloaded.');
+  }
+  function exportCSV() {
+    var rows = [['date', 'time', 'task', 'room', 'minutes', 'energy', 'source']];
+    state.log.forEach(function (e) {
+      var room = roomById(e.roomId);
+      rows.push([e.date, e.time || '', '"' + String(e.title).replace(/"/g, '""') + '"', room ? room.name : '', e.minutes, e.energy, e.source]);
+    });
+    download('home-reset-planner-log.csv', rows.map(function (r) { return r.join(','); }).join('\n'), 'text/csv');
+    toast('Log exported as CSV.');
+  }
+
+  // --- Actions ----------------------------------------------------------
+  function completeTask(id, source) {
+    var task = taskById(id);
+    if (!task) return;
+    var now = new Date();
+    var t = today();
+    task.lastDone = t;
+    state.log.unshift({
+      id: H.uid('l'), taskId: task.id, title: task.title, roomId: task.roomId,
+      minutes: task.minutes, energy: task.energy, date: t,
+      time: (now.getHours() < 10 ? '0' : '') + now.getHours() + ':' + (now.getMinutes() < 10 ? '0' : '') + now.getMinutes(),
+      source: source || 'manual'
+    });
+    save();
+    toast('Done — "' + task.title + '" logged.');
+    render(currentScreenName());
+  }
+  function currentScreenName() {
+    var el = document.querySelector('.screen.active');
+    return el ? el.id.replace('screen-', '') : 'dashboard';
+  }
+
+  function bindActions() {
+    document.addEventListener('click', function (ev) {
+      var el = ev.target.closest('[data-action]');
+      if (!el) return;
+      var action = el.getAttribute('data-action');
+      var id = el.getAttribute('data-id');
+      if (action === 'complete') completeTask(id, 'manual');
+      if (action === 'sess-done') {
+        var task = taskById(id);
+        if (task && currentSession && !currentSession.done[id]) {
+          currentSession.done[id] = true;
+          completeTask(id, currentSession.type === 'deep' ? 'deep' : 'session');
+        }
+      }
+      if (action === 'deep-job') { toggleDeepJob(id); }
+      if (action === 'del-task') {
+        var task = taskById(id);
+        if (!task) return;
+        askConfirm({ title: 'Delete task?', message: 'Delete "' + task.title + '"? This cannot be undone.', confirmLabel: 'Delete' }).then(function (ok) {
+          if (!ok) return;
+          state.tasks = state.tasks.filter(function (x) { return x.id !== id; });
+          save(); renderRooms(); toast('Task deleted.');
+        });
+      }
+      if (action === 'del-room') {
+        var room = roomById(id);
+        if (!room) return;
+        askConfirm({ title: 'Delete room?', message: 'Delete "' + room.name + '" and all its tasks? This cannot be undone.', confirmLabel: 'Delete room' }).then(function (ok) {
+          if (!ok) return;
+          state.rooms = state.rooms.filter(function (x) { return x.id !== id; });
+          state.tasks = state.tasks.filter(function (x) { return x.roomId !== id; });
+          state.hotspots = state.hotspots.filter(function (x) { return x.roomId !== id; });
+          save(); renderRooms(); toast('Room deleted.');
+        });
+      }
+      if (action === 'add-task') {
+        var name = document.getElementById('nt-' + id).value.trim();
+        if (!name) { toast('Type a task name first.'); return; }
+        var supEl = document.getElementById('ns-' + id);
+        state.tasks.push({
+          id: H.uid('t'), roomId: id, title: name,
+          minutes: parseInt(document.getElementById('nm-' + id).value, 10) || 5,
+          energy: document.getElementById('ne-' + id).value,
+          interval: parseInt(document.getElementById('ni-' + id).value, 10) || 0,
+          lastDone: null,
+          supplies: supEl ? supEl.value.trim() : ''
+        });
+        save(); renderRooms(); toast('Task added to ' + (roomById(id) || {}).name + '.');
+      }
+      if (action === 'add-hotspot') {
+        var hn = document.getElementById('nh-' + id).value.trim();
+        if (!hn) { toast('Type a hotspot name first.'); return; }
+        state.hotspots.push({ id: H.uid('h'), name: hn, roomId: id, note: '' });
+        save(); renderRooms(); toast('Hotspot added.');
+      }
+    });
+
+    document.getElementById('nav').addEventListener('click', function (ev) {
+      var b = ev.target.closest('.nav-btn');
+      if (!b) return;
+      location.hash = b.getAttribute('data-screen');
+    });
+    window.addEventListener('hashchange', function () {
+      showScreen((location.hash || '#dashboard').replace('#', ''));
+    });
+
+    document.getElementById('addRoomBtn').addEventListener('click', function () {
+      var name = document.getElementById('newRoomName').value.trim();
+      if (!name) { toast('Type a room name first.'); return; }
+      state.rooms.push({ id: H.uid('r'), name: name });
+      document.getElementById('newRoomName').value = '';
+      save(); renderRooms(); toast('Room "' + name + '" added.');
+    });
+    document.getElementById('cardQuick').addEventListener('click', function () {
+      document.getElementById('sessType').value = 'quick';
+      document.getElementById('sessMinutes').value = '10';
+      buildSession();
+      document.getElementById('sessList').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+    document.getElementById('cardDeep').addEventListener('click', function () {
+      document.getElementById('sessType').value = 'deep';
+      document.getElementById('sessMinutes').value = '30';
+      buildSession();
+      document.getElementById('sessList').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+    document.getElementById('buildSessBtn').addEventListener('click', buildSession);
+    document.getElementById('timerStart').addEventListener('click', startTimer);
+    document.getElementById('timerPause').addEventListener('click', pauseTimer);
+    document.getElementById('timerReset').addEventListener('click', resetTimer);
+    document.getElementById('timerSetCustom').addEventListener('click', function () {
+      var v = parseInt(document.getElementById('timerCustom').value, 10);
+      if (v > 0 && v <= 120) setTimerMinutes(v); else toast('Enter 1–120 minutes.');
+    });
+    document.getElementById('timerChips').addEventListener('click', function (ev) {
+      var c = ev.target.closest('.chip');
+      if (c) setTimerMinutes(parseInt(c.getAttribute('data-min'), 10));
+    });
+    document.getElementById('timerLogBtn').addEventListener('click', function () {
+      var now = new Date();
+      var t = today();
+      var mins = Math.round(timer.totalSec / 60);
+      state.log.unshift({
+        id: H.uid('l'), taskId: null, title: 'Focus cleaning session', roomId: state.rooms[0] ? state.rooms[0].id : '',
+        minutes: mins, energy: 'med', date: t,
+        time: (now.getHours() < 10 ? '0' : '') + now.getHours() + ':' + (now.getMinutes() < 10 ? '0' : '') + now.getMinutes(),
+        source: 'timer'
+      });
+      save();
+      document.getElementById('timerDone').classList.remove('show');
+      resetTimer();
+      toast('Session logged — ' + mins + ' minutes.');
+    });
+    document.getElementById('logFilterRange').addEventListener('change', renderLog);
+    document.getElementById('logFilterRoom').addEventListener('change', renderLog);
+    document.getElementById('saveNameBtn').addEventListener('click', function () {
+      var v = document.getElementById('setName').value.trim();
+      state.userName = v || 'friend';
+      save(); toast('Name saved.');
+      renderDashboard();
+    });
+    document.getElementById('exportJsonBtn').addEventListener('click', exportJSON);
+    document.getElementById('exportCsvBtn').addEventListener('click', exportCSV);
+    document.getElementById('importFile').addEventListener('change', function (ev) {
+      var f = ev.target.files && ev.target.files[0];
+      if (!f) return;
+      var reader = new FileReader();
+      reader.onload = function () {
+        try {
+          var data = JSON.parse(reader.result);
+          if (!data || (data.version !== 1 && data.version !== 2) || !Array.isArray(data.rooms) || !Array.isArray(data.tasks)) throw new Error('bad file');
+          if (data.version === 1) { // migrate a v1 backup: add the v2 fields
+            data.version = 2;
+            data.deepDone = {};
+            data.tasks.forEach(function (t) { if (t.supplies === undefined) t.supplies = ''; });
+          }
+          if (!data.deepDone) data.deepDone = {};
+          state = data;
+          isSample = !!data.sample;
+          save();
+          showScreen('dashboard');
+          toast('Backup restored.');
+        } catch (e) { toast('That file is not a valid Home Reset backup.'); }
+      };
+      reader.readAsText(f);
+      ev.target.value = '';
+    });
+    function startFresh() {
+      askConfirm({
+        title: 'Start fresh?',
+        message: 'This removes all rooms, tasks, hotspots and history. This cannot be undone — download a backup first if you want to keep your data.',
+        confirmLabel: 'Start fresh'
+      }).then(function (ok) {
+        if (!ok) return;
+        try { localStorage.removeItem(STORAGE_KEY); } catch (e) { /* ignore */ }
+        state = { version: 2, userName: state.userName || 'Alex', rooms: [], tasks: [], hotspots: [], log: [], deepDone: {} };
+        isSample = false;
+        currentSession = null;
+        save();
+        showScreen('dashboard');
+        toast('Fresh start — your home is empty. Add your first room.');
+      });
+    }
+    document.getElementById('startFreshBtn').addEventListener('click', startFresh);
+    document.getElementById('bannerFresh').addEventListener('click', startFresh);
+    // Styled confirm modal buttons
+    document.getElementById('confirmCancel').addEventListener('click', function () { closeConfirm(false); });
+    document.getElementById('confirmOk').addEventListener('click', function () { closeConfirm(true); });
+    document.getElementById('confirmOverlay').addEventListener('click', function (ev) {
+      if (ev.target === this) closeConfirm(false);
+    });
+    document.addEventListener('keydown', function (ev) {
+      if (ev.key === 'Escape' && document.getElementById('confirmOverlay').classList.contains('show')) closeConfirm(false);
+    });
+    // Deep Clean Plan season chips (delegated — the chips re-render)
+    document.getElementById('deepSeasonRow').addEventListener('click', function (ev) {
+      var c = ev.target.closest('[data-season]');
+      if (!c) return;
+      deepSeason = c.getAttribute('data-season');
+      renderDeepPlan();
+    });
+  }
+
+  // --- Init ---------------------------------------------------------------
+  state = load();
+  save();
+  bindActions();
+  showScreen((location.hash || '#dashboard').replace('#', ''));
+  window.HomeResetApp = { getState: function () { return state; }, showScreen: showScreen, completeTask: completeTask, buildSession: buildSession };
+})();
+
+</script>
+</body>
+</html>
